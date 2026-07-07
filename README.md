@@ -34,6 +34,51 @@
 
 **ב-Cowork / claude.ai** — מורידים את קובץ ה-`.skill` מתיקיית `dist/` ומעלים אותו במסך היכולות (Capabilities → Skills).
 
+## מ-GitHub למחשב שלך — ואיפה הסקיל באמת מופעל
+
+**קודם כול, ההבדל שהכי חשוב להבין** (כאן נמצא רוב הבלבול):
+
+- תיקיית `skills` בתוך `claude cowork.md` = **עותק גיבוי מסודר בלבד.** נחמד לסדר ולשמור — אבל זה **לא** מה שגורם ל-Claude להשתמש בסקיל.
+- `~/.claude/skills` (כלומר `C:\Users\HP AIO\.claude\skills`) = **זו** התיקייה ש-Claude טוען ממנה סקילים. מה שיושב שם — פעיל. מה שלא שם — Claude לא רואה.
+
+### 1. להוריד את הסקילים למחשב (העותק בתיקיית skills)
+
+בלי טרמינל, בלי git:
+
+1. בדף ה-GitHub של המאגר: כפתור ירוק **Code** ← **Download ZIP**
+2. לפתוח (חילוץ) את קובץ ה-ZIP
+3. לגרור את תיקיית `skills` אל תוך `claude cowork.md\` — ועכשיו יש לך `claude cowork.md\skills\`
+
+זה לגיבוי ולסדר. **כדי שהסקילים באמת יעבדו — ממשיכים לשלב 2.**
+
+מי שמעדיף git, הפקודה נותנת תיקיית `skills` שמתעדכנת בכל פעם עם `git pull`:
+
+<div dir="ltr">
+
+```
+git clone https://github.com/eyalrabino12-glitch/overview-.git
+```
+
+</div>
+
+### 2. לגרום ל-Claude להשתמש בהם
+
+**ב-Claude Code על המחשב** — הסקילים צריכים לשבת ב-`C:\Users\HP AIO\.claude\skills\`. לפי ההערות שלך הם כבר שם, אז את זה צריך לעשות שוב רק אחרי ששינית סקיל. בפקודה אחת ב-PowerShell, מתוך התיקייה שהורדת:
+
+<div dir="ltr">
+
+```powershell
+Copy-Item -Path .\skills\* -Destination "$HOME\.claude\skills\" -Recurse -Force
+```
+
+</div>
+
+**ב-Cowork / claude.ai (בדפדפן)** — מעלים כל קובץ `.skill` מתיקיית `dist/` במסך היכולות (Capabilities ← Skills).
+
+### 3. איך יודעים שזה עבד
+
+פותחים את Claude Code ומבקשים משהו שהסקיל אמור לתפוס — למשל "תבדוק את הקוד הזה" אמור להפעיל את vola-code-check. אפשר גם פשוט לוודא שהתיקייה `C:\Users\HP AIO\.claude\skills\vola-code-check` קיימת.
+
 ## איך מעדכנים סקיל
 
 1. עורכים את הקבצים בתוך `skills/<שם-הסקיל>/`
