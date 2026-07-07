@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VOLA - חשבונית</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f4f6; margin: 0; padding: 40px 16px; color: #222; }
+  .invoice { max-width: 520px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 18px rgba(0,0,0,.07); }
+  h1 { font-size: 20px; margin: 0 0 20px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: right; padding: 10px 6px; border-bottom: 1px solid #eee; font-size: 15px; }
+  th { color: #888; font-weight: normal; font-size: 13px; }
+  td.num, th.num { text-align: left; }
+  .totals { margin-top: 18px; }
+  .totals div { display: flex; justify-content: space-between; padding: 6px 0; font-size: 15px; }
+  .totals .grand { font-weight: bold; font-size: 18px; border-top: 2px solid #222; margin-top: 8px; padding-top: 12px; }
+</style>
+</head>
+<body>
+  <div class="invoice">
+    <h1>חשבונית - VOLA בניית אתרים</h1>
+
+    <table>
+      <thead>
+        <tr><th>פריט</th><th class="num">כמות</th><th class="num">מחיר</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+
+    <div class="totals">
+      <div><span>סכום ביניים</span><span id="subtotal"></span></div>
+      <div><span>מע"מ 18%</span><span id="vat"></span></div>
+      <div class="grand"><span>סה"כ לתשלום</span><span id="total"></span></div>
+    </div>
+  </div>
+
+  <script>
+    const items = [
+      { name: 'עיצוב ובניית דף נחיתה', qty: 1, price: 1200 },
+      { name: 'אחסון שנתי', qty: 1, price: 300 },
+      { name: 'חיבור דומיין', qty: 1, price: 80 }
+    ];
+
+    const VAT_RATE = 0.18;
+
+    function calcTotals(items) {
+      const subtotal = items.reduce((s, it) => s + it.qty * it.price, 0);
+      const vat = subtotal * VAT_RATE;
+      const total = subtotal + vat;
+      return { subtotal, vat, total };
+    }
+
+    function ils(n) {
+      return n.toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₪';
+    }
+
+    function render() {
+      document.getElementById('rows').innerHTML = items.map(it =>
+        '<tr><td>' + it.name + '</td><td class="num">' + it.qty + '</td><td class="num">' + ils(it.price) + '</td></tr>'
+      ).join('');
+
+      const t = calcTotals(items);
+      document.getElementById('subtotal').textContent = ils(t.subtotal);
+      document.getElementById('vat').textContent = ils(t.vat);
+      document.getElementById('total').textContent = ils(t.total);
+    }
+
+    render();
+  </script>
+</body>
+</html>

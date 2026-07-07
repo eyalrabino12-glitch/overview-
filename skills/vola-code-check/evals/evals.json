@@ -1,0 +1,11 @@
+{
+  "skill_name": "vola-code-check",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "תבדוק לי את הקובץ הזה לפני שאני שולח ללקוח? יש שם מחשבון עסקאות. תגיד לי אם יש בעיות. (file: profit-calc-v1.html — test file with 10 planted bugs, see workspace/private/answer-key.md)",
+      "expected_output": "Hebrew review report finding all 10 planted bugs (JSON.parse crash, bare setItem, lexicographic sort, parseFloat comma, double-submit, innerHTML XSS, phone RTL, getMonth off-by-one, silent catch + success toast, total loop from i=1), with severity ranking, paste-ready fixes, no fabricated findings, ship/no-ship bottom line",
+      "files": ["profit-calc-v1.html"]
+    }
+  ]
+}

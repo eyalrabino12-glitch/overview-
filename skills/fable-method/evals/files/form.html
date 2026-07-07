@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מספרת רוני - צור קשר</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #faf7f2; margin: 0; padding: 40px 16px; color: #2b2b2b; }
+  .card { max-width: 420px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 28px; box-shadow: 0 4px 18px rgba(0,0,0,.08); }
+  h1 { font-size: 22px; margin: 0 0 6px; }
+  p.sub { color: #777; font-size: 14px; margin: 0 0 22px; }
+  label { display: block; font-size: 14px; margin: 14px 0 6px; font-weight: bold; }
+  input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; }
+  button { margin-top: 20px; width: 100%; padding: 12px; background: #b5832e; color: #fff; border: 0; border-radius: 8px; font-size: 16px; cursor: pointer; }
+  button:hover { background: #9e7226; }
+  #status { margin-top: 14px; font-size: 14px; text-align: center; min-height: 20px; }
+  #status.ok { color: #2e7d32; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>מספרת רוני</h1>
+    <p class="sub">השאירו פרטים ונחזור אליכם עוד היום</p>
+
+    <form id="leadForm">
+      <label for="name">שם מלא</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="phone">טלפון</label>
+      <input type="tel" id="phone" name="phone" required>
+    </form>
+
+    <button type="submit">שלח</button>
+
+    <div id="status"></div>
+  </div>
+
+  <script>
+    // v2 - moved from the old inline onclick version
+    const form = document.getElementById('leadForm');
+    const statusEl = document.getElementById('status');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      if (!name || !phone) return;
+
+      // send the lead (WhatsApp link for now, API later)
+      const msg = encodeURIComponent('ליד חדש מהאתר: ' + name + ' - ' + phone);
+      window.open('https://wa.me/972501234567?text=' + msg, '_blank');
+
+      statusEl.textContent = 'תודה! נחזור אליך בהקדם';
+      statusEl.className = 'ok';
+      form.reset();
+    });
+  </script>
+</body>
+</html>

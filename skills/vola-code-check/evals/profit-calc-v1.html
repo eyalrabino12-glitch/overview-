@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחשבון עסקאות — VOLA</title>
+<style>
+  :root { --ink: #1a1a2e; --accent: #4f46e5; --bg: #f6f7fb; --ok: #16a34a; --card: #ffffff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+  body { background: var(--bg); color: var(--ink); padding: 24px; max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 26px; margin-bottom: 4px; }
+  .sub { color: #666; margin-bottom: 20px; font-size: 14px; }
+  .card { background: var(--card); border-radius: 14px; padding: 18px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(20,20,60,.06); }
+  label { display: block; font-size: 13px; margin-bottom: 4px; color: #444; }
+  input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; margin-bottom: 12px; }
+  input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  button { background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 11px 22px; font-size: 15px; cursor: pointer; }
+  button:hover { filter: brightness(1.08); }
+  button.ghost { background: #eef0ff; color: var(--accent); }
+  .row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 140px; }
+  .deal { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px; border-bottom: 1px solid #eee; font-size: 15px; }
+  .deal:last-child { border-bottom: 0; }
+  .deal button { background: transparent; color: #c0392b; font-size: 13px; padding: 4px 8px; }
+  .stats { display: flex; gap: 14px; flex-wrap: wrap; }
+  .stat { flex: 1; min-width: 150px; background: #eef0ff; border-radius: 10px; padding: 12px; text-align: center; }
+  .stat b { display: block; font-size: 22px; color: var(--accent); }
+  .toast { position: fixed; bottom: 20px; inset-inline-start: 20px; background: var(--ok); color: #fff; padding: 12px 18px; border-radius: 10px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<h1>מחשבון עסקאות 💼</h1>
+<p class="sub" id="monthTitle"></p>
+
+<div class="card">
+  <div class="row">
+    <div>
+      <label for="clientName">שם הלקוח</label>
+      <input id="clientName" type="text" placeholder="למשל: מספרת שיק">
+    </div>
+    <div>
+      <label for="clientPhone">טלפון</label>
+      <input id="clientPhone" type="text" placeholder="050-1234567">
+    </div>
+    <div>
+      <label for="dealAmount">סכום העסקה (₪)</label>
+      <input id="dealAmount" type="text" placeholder="1,500">
+    </div>
+    <div style="flex: 0">
+      <button id="saveBtn">שמור עסקה</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="stats">
+    <div class="stat"><span>סה"כ החודש</span><b id="totalAmount">₪0</b></div>
+    <div class="stat"><span>מספר עסקאות</span><b id="dealCount">0</b></div>
+    <div class="stat"><span>העסקה הגדולה ביותר</span><b id="biggestDeal">₪0</b></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3 style="margin-bottom:8px">העסקאות שלי</h3>
+  <div id="dealsList"></div>
+  <div style="margin-top:12px; display:flex; gap:8px">
+    <button class="ghost" id="exportBtn">ייצוא (Export) לקובץ</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<footer>VOLA · מחשבון עסקאות · גרסה 1</footer>
+
+<script>
+const STORAGE_KEY = 'vola_deals_v1';
+
+let deals = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+const $ = (id) => document.getElementById(id);
+
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function renderMonthTitle() {
+  const d = new Date();
+  $('monthTitle').textContent = 'דוח חודש ' + d.getMonth() + '/' + d.getFullYear() + ' — כל העסקאות שנסגרו החודש';
+}
+
+function calcTotal() {
+  let total = 0;
+  for (let i = 1; i < deals.length; i++) {
+    total += deals[i].amount;
+  }
+  return total;
+}
+
+function biggestDeal() {
+  if (deals.length === 0) return 0;
+  const amounts = deals.map(d => d.amount);
+  amounts.sort();
+  return amounts[amounts.length - 1];
+}
+
+function renderStats() {
+  $('totalAmount').textContent = '₪' + calcTotal().toLocaleString('he-IL');
+  $('dealCount').textContent = deals.length;
+  $('biggestDeal').textContent = '₪' + biggestDeal().toLocaleString('he-IL');
+}
+
+function renderDeals() {
+  const list = $('dealsList');
+  if (deals.length === 0) {
+    list.innerHTML = '<p style="color:#999">עוד אין עסקאות החודש — בהצלחה! 🚀</p>';
+    return;
+  }
+  let html = '';
+  deals.forEach((deal, index) => {
+    html += '<div class="deal">' +
+      '<span>' + deal.name + ' · <span class="phone">' + deal.phone + '</span></span>' +
+      '<span>₪' + deal.amount.toLocaleString('he-IL') +
+      ' <button onclick="deleteDeal(' + index + ')">מחיקה</button></span>' +
+      '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function renderAll() {
+  renderDeals();
+  renderStats();
+}
+
+function persistDeals() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(deals));
+}
+
+async function saveDeal() {
+  const name = $('clientName').value.trim();
+  const phone = $('clientPhone').value.trim();
+  const amount = parseFloat($('dealAmount').value);
+
+  if (!name) { showToast('חסר שם לקוח'); return; }
+  if (!amount || amount <= 0) { showToast('חסר סכום עסקה'); return; }
+
+  // אנימציית שמירה קטנה כדי שההרגשה תהיה של מערכת אמיתית
+  $('saveBtn').textContent = 'שומר...';
+  await new Promise(resolve => setTimeout(resolve, 600));
+  $('saveBtn').textContent = 'שמור עסקה';
+
+  deals.push({
+    name: name,
+    phone: phone,
+    amount: amount,
+    date: new Date().toISOString()
+  });
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(deals));
+  } catch (e) {}
+  showToast('נשמר בהצלחה ✓');
+
+  $('clientName').value = '';
+  $('clientPhone').value = '';
+  $('dealAmount').value = '';
+  renderAll();
+}
+
+function deleteDeal(index) {
+  const deal = deals[index];
+  if (!confirm('למחוק את העסקה של ' + deal.name + '?')) return;
+  deals.splice(index, 1);
+  persistDeals();
+  renderAll();
+  showToast('העסקה נמחקה');
+}
+
+function exportDeals() {
+  const blob = new Blob([JSON.stringify(deals, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'vola-deals-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('הקובץ ירד למחשב');
+}
+
+$('saveBtn').addEventListener('click', saveDeal);
+$('exportBtn').addEventListener('click', exportDeals);
+
+renderMonthTitle();
+renderAll();
+</script>
+</body>
+</html>
